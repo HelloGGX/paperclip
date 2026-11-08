@@ -3,7 +3,7 @@
 > 文档性质：产品设计与分阶段验证方案。本文描述目标体验和建议能力，不代表当前 Paperclip 已经实现了这些功能。
 > 修订：2026-11-08，明确集中部署、每团队一个 Company，以及 Paperclip 管理 Agent、运行时执行 BMAD 的分工；通过原生任务问答和人工确认交互，保留本地开发、Comet 观察和公司级使用边界。
 >
-> 2026-11-08 更新规模：100 个团队，峰值约 200 个或更多正在执行的规划任务；必须内网自建，已有 Kubernetes / 数据库运维团队。原有 200 个项目、约 500 个活跃开发工作区保留为独立测试基线，不随团队数自动翻倍。部署与验收以[内网部署方案](plans/2026-11-08-on-prem-100-teams-deployment.md)为准。
+> 2026-11-08 最新确认规模：20 个团队、50 个项目、50 个实际并发规划 Run；必须内网自建，已有 Kubernetes / 数据库运维团队。500 活跃开发工作区只保留为待确认的 Comet 压测假设。当前范围与实施顺序以[总结与风险](enterprise_ai_rd_platform_summary_and_risks.md)及[BMAD 接入计划](plans/2026-11-08-bmad-integration-and-delivery-plan.md)为准，替代此前 100 团队 / 200+ Run 目标。
 
 > 容量边界：团队数、登录人数、开发工作区数与同时执行的规划任务数分别计量。多 Company 支持不代表无限吞吐；数据库连接与查询、平台调度、执行目标资源和模型服务限额需一起验证，不能仅凭团队数量承诺服务器容量。
 >
@@ -335,6 +335,8 @@ Comet 的阶段、运行状态和验证结果用于反映本地事实，不直�
 
 验证一个用户能否通过一个产品经理 Agent，在原生任务中完成“提出需求 → 回答问题 → 生成 PRD → 确认具体版本 → 继续流程”，并能将该版本作为交接资料在本地 IDE 中获取。PoC 固定一种支持的 Runtime 和一条 BMAD 规划 Workflow；完整开发交接还包含实际所需的架构、任务与验收标准。
 
+第一项工程工作是把固定 BMAD 方法资产及其依赖接入这个 Agent 的实际执行环境，经现有 Company skills 验证加载、问答与恢复；不以给 Paperclip 源码开发助手安装技能作为产品接入完成。先使用现有普通任务入口做通，再增加项目入口和更多角色；完整步骤见[BMAD 接入计划](plans/2026-11-08-bmad-integration-and-delivery-plan.md)。
+
 ### 范围
 
 1. 启用用户登录，创建或选择团队，并保证基本团队数据隔离。
@@ -361,7 +363,7 @@ Comet 的阶段、运行状态和验证结果用于反映本地事实，不直�
 
 PoC 成功后，扩展架构设计、候选任务整理、完整开发交接、Comet 进度同步和交付结果关联。本地 Skill 承接任务选择与 Story 生成，自研 Workflow 承接开发文档、代码和验证。跨团队权限、成果审阅、仓库冲突处理、规划 Agent 运行恢复和审计随平台范围同步完善。
 
-面向 100 个团队、200+ 规划并发的正式上线，先验证单活控制平面与受控故障接管、HA 数据库、隔离执行池及持久存储；单活不等于单机部署。API 长期多活须另行验证通知与后台所有权，不能仅靠增加副本。单团队 PoC 成功不能替代容量、隔离、人工交互和恢复验收；部署路径见[内网部署方案](plans/2026-11-08-on-prem-100-teams-deployment.md)，Comet 进度与质量契约见[公司级补充方案](plans/2026-11-07-comet-progress-and-enterprise-readiness.md)。
+面向 20 团队、50 项目、50 Run 的正式上线，验证单活控制平面与受控接管、HA 数据库、隔离执行池和持久存储；单活不等于单机部署。API 长期多活须另行验证通知与后台所有权。按 BMAD 闭环、可靠控制、Git 交接、多团队隔离、Comet、生产验收依次推进；单团队 PoC 不替代后续门槛。部署决策见[当前总结](enterprise_ai_rd_platform_summary_and_risks.md)，进度契约见[公司级补充方案](plans/2026-11-07-comet-progress-and-enterprise-readiness.md)。
 
 后续可以评估多仓库、多方法论和更灵活的自动化策略，但这些能力应由实际使用场景驱动。
 
@@ -374,13 +376,15 @@ PoC 成功后，扩展架构设计、候选任务整理、完整开发交接、C
 5. 人类团队成员的默认权限、项目私有规则，以及 Agent 代用户执行时的授权边界如何映射到底层。
 6. 目标产品与 Paperclip 的差异中，哪些可以通过配置或插件实现，哪些需要维护核心改造。
 7. 现有 Harness 如何读取交接文档，以及已有的 IDE 入口、项目识别、Comet 只读采集和结果导出接口。Comet Classic 状态格式已定向核实，但用户实际安装版本和采集能力仍需实测。
-8. 已确认内网 Kubernetes、数据库运维条件及 200+ 规划并发；仍需确定身份提供方、物理故障域、备份设施、模型吞吐和保留策略。500 工作区保留为进度测试基线，性能与恢复数字仍是待验证目标。
+8. 已确认内网 Kubernetes、数据库运维条件及 50 规划并发；仍需确定身份提供方、物理故障域、备份、模型吞吐和保留策略。500 工作区为待确认的进度压力假设，性能与恢复数字仍是待验证目标。
 
 ## 12. 参考材料
 
 - [团队级 AI 研发平台技术架构方案](plans/2026-11-05-team-ai-development-architecture.md)
 - [Comet 开发进度接入与公司级部署方案](plans/2026-11-07-comet-progress-and-enterprise-readiness.md)
-- [100 团队、200+ 规划并发的内网部署与验收方案](plans/2026-11-08-on-prem-100-teams-deployment.md)
+- [总结与风险：当前 20 团队 / 50 项目 / 50 Run](enterprise_ai_rd_platform_summary_and_risks.md)
+- [BMAD 接入与实施计划](plans/2026-11-08-bmad-integration-and-delivery-plan.md)
+- [历史 100 团队 / 200+ Run 扩容参考](plans/2026-11-08-on-prem-100-teams-deployment.md)
 - [Paperclip 产品定义](PRODUCT.md)
 - [Paperclip 当前实现契约](SPEC-implementation.md)
 - [Paperclip 部署与认证模式](DEPLOYMENT-MODES.md)
